@@ -1,25 +1,25 @@
-# Nexus Lab | Groq AI Chatbot
+# Nexus Lab AI Assistant
 
-A dark themed, conversational Q&A chatbot built with Streamlit, LangChain, and Groq. It keeps the current conversation in Streamlit session state and passes earlier turns to the model so follow-up questions have context.
+A Streamlit chat assistant powered by Groq. It can use PDF files in the `research/` folder as reference material, optionally search the web with Tavily, and retain conversation context while the current Streamlit session is active.
 
 ## Features
 
-- Chat-style interface with user and assistant messages.
-- Conversation history during the current Streamlit session, with a **Clear Chat History** control.
-- Groq model selection, temperature, and maximum response token settings in the sidebar.
-- Groq API key entered in a password field in the app.
-- Optional LangSmith tracing.
+- Conversational chat with streamed responses and session-based chat history.
+- PDF question answering: PDFs in `research/` are loaded, split into text chunks, embedded with `sentence-transformers/all-MiniLM-L6-v2`, and indexed with FAISS. The top three matching chunks are sent to the model as context.
+- Optional web search using Tavily. Enable **Enable Tavily Web Search** in the sidebar and provide a Tavily API key.
+- Sidebar controls for Groq model, temperature, and maximum response tokens.
+- **Clear Chat** button to reset the conversation.
 - Custom dark theme and Nexus Lab footer.
 
 ## Requirements
 
 - Python 3.9 or newer
 - A [Groq API key](https://console.groq.com/keys)
-- Optional: a [LangSmith API key](https://smith.langchain.com/) for tracing
+- Optional: a [Tavily API key](https://app.tavily.com/) to use web search
 
 ## Installation
 
-Create and activate a virtual environment from the project directory:
+Create and activate a virtual environment in the project directory:
 
 ```bash
 python -m venv .venv
@@ -37,46 +37,44 @@ macOS or Linux:
 source .venv/bin/activate
 ```
 
-Install dependencies:
+Install the project dependencies:
 
 ```bash
 python -m pip install -r requirement.txt
 ```
 
-## Run the app
+## Add research PDFs
+
+Place PDF files directly inside the `research/` folder. The app loads and indexes them when needed. If the folder contains no PDFs, the assistant still works as a general Groq chatbot; PDF search context is simply unavailable. The first embedding run may download the Hugging Face sentence-transformer model.
+
+## Run
+
+From the project directory, start the app:
 
 ```bash
 streamlit run main.py
 ```
 
-Open the local address printed by Streamlit. Enter your Groq API key in the sidebar, choose a model and generation settings, then ask a question in the chat input. Use **Clear Chat History** to start a fresh conversation.
+Open the local URL shown in the terminal. Enter your Groq API key in the sidebar and ask a question in the chat box. To include web results, also enter a Tavily API key and turn on web search.
 
-The app currently offers these model IDs:
+The model choices currently configured in the app are:
 
 - `openai/gpt-oss-120b`
 - `openai/gpt-oss-20b`
 - `qwen/qwen3.8-27b`
 
-Model availability depends on your Groq account and the provider's current catalog.
+## Configuration
 
-## Optional LangSmith tracing
-
-The app enables LangSmith tracing under the project name `Q&A ChatBot with GroqAI`. To configure tracing, create a `.env` file in the project root with:
-
-```dotenv
-LANGCHAIN_API_KEY=your_langsmith_api_key
-```
-
-The Groq API key is entered in the app and does not need to be saved in `.env`. Keep API keys private and do not commit `.env` to version control.
+The app optionally reads `LANGCHAIN_API_KEY` from a `.env` file for LangSmith integration. Keep API keys private and do not commit `.env` to version control. Groq and Tavily keys can be entered in the sidebar when the app runs.
 
 ## Project structure
 
 ```text
 .
-├── main.py          # Streamlit chat interface and Groq/LangChain logic
-├── style.py         # Custom dark theme styles
-├── footer.py        # Nexus Lab footer
-├── requirement.txt  # Python dependencies
-└── .streamlit/
-    └── config.toml  # Streamlit theme settings
+├── main.py                 # Streamlit UI, Groq chat, PDF retrieval, optional web search
+├── style.py                # Theme and footer rendering
+├── footer.py               # Legacy footer renderer
+├── requirement.txt         # Python dependencies
+├── research/               # Add PDF documents here
+└── .streamlit/config.toml  # Streamlit theme and server settings
 ```
